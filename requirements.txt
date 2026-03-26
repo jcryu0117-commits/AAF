@@ -2,3 +2,4 @@ streamlit
 pillow
 reportlab
 openai>=1.0.0
+python-dotenv
