@@ -128,34 +128,23 @@ with result_area:
     if not os.path.exists(output_dir):
         st.info("아직 생성된 전자책이 없습니다.")
     else:
-        pdf_files = []
+        titles = []
 
-        # 🔥 하위 폴더까지 모두 탐색
-        for root, dirs, files in os.walk(output_dir):
-            for file in files:
-                if file.endswith(".pdf"):
-                    pdf_files.append(os.path.join(root, file))
+        # 🔥 하위 폴더 기준으로 책 제목 추출
+        for name in os.listdir(output_dir):
+            folder_path = os.path.join(output_dir, name)
 
-        if not pdf_files:
+            if os.path.isdir(folder_path):
+                titles.append(name)
+
+        if not titles:
             st.info("아직 생성된 전자책이 없습니다.")
         else:
-            pdf_files.sort(reverse=True)
+            # 최신순 정렬 (폴더 생성 시간 기준은 안되니 이름 기준으로)
+            titles.sort(reverse=True)
 
-            for file_path in pdf_files:
-
-                filename = os.path.basename(file_path)
-
-                col1, col2 = st.columns([3, 1])
-
-                with col1:
-                    st.write(f"📘 {filename}")
-
-                with col2:
-                    with open(file_path, "rb") as f:
-                        st.download_button(
-                            label="다운로드",
-                            data=f,
-                            file_name=filename,
-                            mime="application/pdf",
-                            key=file_path
-                        )
+            for t in titles:
+                st.markdown(
+                    f"<span style='color:#4CAF50; font-weight:bold'>📘 {t}</span>",
+                    unsafe_allow_html=True
+                )
