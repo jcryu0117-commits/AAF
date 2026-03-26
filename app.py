@@ -1,6 +1,27 @@
+import zipfile
+import io
 import streamlit as st
 import os
 from main import run_pipeline
+
+def make_zip_multi(folders):
+    zip_buffer = io.BytesIO()
+
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+        for folder in folders:
+            for root, dirs, files in os.walk(folder):
+                for file in files:
+                    file_path = os.path.join(root, file)
+
+                    arcname = os.path.join(
+                        os.path.basename(folder),
+                        os.path.relpath(file_path, folder)
+                    )
+
+                    zf.write(file_path, arcname)
+
+    zip_buffer.seek(0)
+    return zip_buffer
 
 st.set_page_config(page_title="AI Ebook Factory", layout="centered")
 
@@ -63,15 +84,14 @@ with generate_area:
                         if not msg:
                             return
 
-                        status_text.text("✍️ 챕터 생성 중...")
-
                         if msg.startswith("BOOK_DONE::"):
                             _, idx, title = msg.split("::")
                             logs.append(f"📘 {idx}번 책 완료: {title}")
+                            status_text.text(f"📘 {idx}번 책 완료")
 
                         log_box.text("\n".join(logs[-10:]))
 
-                    run_pipeline(
+                    folders = run_pipeline(
                         topic,
                         language,
                         author_name,
@@ -79,8 +99,17 @@ with generate_area:
                         progress_callback=update_progress
                     )
 
+                    zip_data = make_zip_multi(folders)
+
                 status_text.text("완료!")
                 st.success("✅ 전자책 생성 완료!")
+
+                st.download_button(
+                    label="📦 전체 전자책 다운로드 (ZIP)",
+                    data=zip_data,
+                    file_name="ebooks_package.zip",
+                    mime="application/zip"
+                )
 
             finally:
                 # 🔥 무조건 해제 (에러 나도 풀림)

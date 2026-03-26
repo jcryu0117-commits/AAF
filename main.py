@@ -10,6 +10,8 @@ from modules.cover_generator import generate_cover
 
 def run_pipeline(topic, language, author_name, publisher_name, progress_callback=None, total_tasks_callback=None):
 
+    generated_folders = []
+
     # 아이디어 생성
     ideas_text = generate_ideas(topic, language)
 
@@ -139,8 +141,12 @@ def run_pipeline(topic, language, author_name, publisher_name, progress_callback
 
         print(f"\nPDF created: {pdf_path}")
 
+        generated_folders.append(folder_path)
+
         if progress_callback:
             progress_callback(f"BOOK_DONE::{idx}::{book_title}")
+
+    return generated_folders
 
 
 # ================= CLI 실행 유지 =================
